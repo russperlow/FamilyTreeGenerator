@@ -1,5 +1,14 @@
 let oFileIn; // The uploaded file
 let brothers = []; // List of brothers
+let treeHeads = []; // List of all tree heads (brothers without bigs)
+
+let canvas, ctx;
+
+window.onload = function(){
+    canvas = document.querySelector("canvas");
+    canvas.height = window.innerHeight;
+    ctx = canvas.getContext('2d');
+}
 
 // CONSTANTS, SHOULD READ AS COLUMN TITLES AS THEY APPEAR IN THE EXCEL SHEET
 let XLXS_BB_ROLL = "BB Roll"; // NAME OF COLUMN WHERE BIG BROTHER ROLL # IS 
@@ -44,8 +53,10 @@ function filePicked(oEvent) {
             // Whenever a new sheet is uploaded, reset and create brothers
             if(sheetName == XLXS_MAIN_SHEET_NAME){
                 brothers = [];
+                treeHeads = [];
                 createBrothers(oJS);
                 getBigBrothers();
+                makeTrees();
             }
         });
     };
@@ -88,6 +99,38 @@ function getBigBrothers(){
 
             bigBrother.LittleBrothers.push(brothers[i]);
         }
+        else{
+            treeHeads.push(brothers[i]);
+        }
     }
-    console.log(brothers);
+    // console.log(brothers);
+}
+
+function makeTrees(){
+    for(let i = 0; i < treeHeads.length; i++){
+        let treeHead = treeHeads[i];
+
+        if(treeHead.Name == "Clayton Smith"){
+            drawLittle(treeHead, 10, 10, 100, 50);
+        }
+    }
+}
+
+// Recursively draw littles all the way down the tree
+function drawLittle(brother, x, y, width, height){
+
+    let littleBrothers = brother.LittleBrothers;
+    for(let i = 0; i < littleBrothers.length; i++){
+        drawLittle(littleBrothers[i], x + (width * 1.5 * i), y + (height * 1.5), width, height);
+    }
+
+    console.log(brother.Name);
+    ctx.fillStyle = 'green';
+    ctx.fillRect(x, y, width, height);
+    ctx.fillStyle = 'red';
+    ctx.font = '15px Arial';
+    ctx.fillText(brother.Name, x, y);
+
+    // ctx.fillStyle = 'green';
+    // ctx.fillRect(x, y, width, height);
 }
