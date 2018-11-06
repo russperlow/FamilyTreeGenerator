@@ -136,7 +136,6 @@ function getBigBrothers(){
             treeHeads.push(brothers[i]);
         }
     }
-    // console.log(brothers);
 }
 
 function makeTrees(){
@@ -148,7 +147,6 @@ function makeTrees(){
             setTreeXValues(treeHead);
             checkAllChildrenOnScreen(treeHead);
             calculateFinalPositions(treeHead, 0);
-            printNodes(treeHead);
             let offsetX = (canvas.width / 2);
             drawLittle(treeHead, 0, 20, 100, 50, 200);
         }
@@ -180,7 +178,7 @@ function setTreeXValues(brother){
             brother.X = brother.PreviousLittle.X + NODESIZE + SIBLINGDISTANCE;
             brother.Mod = brother.X - littleBrothers[0].X;
         }
-    }
+    } // If multiple littles
     else{
         let leftChild = littleBrothers[0];
         let rightChild = littleBrothers[littleBrothers.length - 1];
@@ -299,6 +297,7 @@ function CenterNodesBetween(leftNode, rightNode){
     }
 }
 
+// Checks all of the children from the root node
 function checkAllChildrenOnScreen(brother){
     var nodeContour = new Dictionary();
     nodeContour = getLeftContour(brother, 0, nodeContour);
@@ -316,12 +315,8 @@ function checkAllChildrenOnScreen(brother){
     }
 }
 
-
+// Calculates the final positions on the screen to avoid overlapping and misplacement
 function calculateFinalPositions(brother, modSum){
-
-    if(brother.Name == "Pat Furrey"){
-        debugger;
-    }
 
     brother.X += modSum;
     modSum += brother.Mod;
@@ -329,13 +324,6 @@ function calculateFinalPositions(brother, modSum){
     for(var i = 0; i < brother.LittleBrothers.length; i++){
         calculateFinalPositions(brother.LittleBrothers[i], modSum);
     }
-}
-
-function printNodes(brother){
-    for(var i = 0; i < brother.LittleBrothers.length; i++){
-        printNodes(brother.LittleBrothers[i]);
-    }
-    console.log("Name: " + brother.Name + " X: " + brother.X + " Y: " + brother.Y + " Mod: " + brother.Mod);
 }
 
 // Recursively draw littles all the way down the tree
@@ -346,12 +334,25 @@ function drawLittle(brother, x, y, width, height, offsetX){
         drawLittle(littleBrothers[i], brother.X, y + (height * 1.5), width, height, offsetX);
     }
 
-    // console.log("Name: " + brother.Name + " X: " + brother.X);
+    // Draw this brothers rectangle
     ctx.fillStyle = 'green';
     ctx.fillRect(brother.X * offsetX, y, width, height);
+
+    // Draw this brothers name inside their rectangle
     ctx.fillStyle = 'red';
     ctx.font = '12px Arial';
     ctx.fillText(brother.Name, brother.X * offsetX, y);
+
+    // Draw the 2 lines connecting this brother to his big
+    var bigY = y - (height * 1.5) + (height / 2);
+    var bigX = brother.Big.X * offsetX;
+    var centerX = brother.X * offsetX + (width / 2);
+    ctx.strokeStyle = 'black';
+    ctx.beginPath();
+    ctx.moveTo(centerX, y);
+    ctx.lineTo(centerX, bigY);
+    ctx.lineTo(bigX, bigY);
+    ctx.stroke();
 }
 
 class Dictionary{
