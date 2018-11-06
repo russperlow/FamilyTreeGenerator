@@ -11,6 +11,10 @@ let rectFill = 'white';
 let lineColor = 'black';
 let textColor = 'blue';
 
+// Width and height for the tree nodes we will draw
+let brotherWidth = 100;
+let brotherHeight = 50;
+
 window.onload = function(){
     canvas = document.querySelector("canvas");
     canvas.height = window.innerHeight;
@@ -134,11 +138,16 @@ function makeTrees(treeToMake){
     checkAllChildrenOnScreen(treeHead);
     calculateFinalPositions(treeHead, 0);
 
+    let leftToRight = getLeftToRightDistance(treeHead); // How wide our tree should be
+    let treeDepth = getTreeDepth(treeHead, -1); // How deep our tree should be
+    canvas.width = (2+leftToRight) * spaceMultipler;
+    canvas.height = (2+treeDepth * 1.5) * brotherHeight;
+
     // The offset is to try and center the tree in canvas
-    let offsetX = (canvas.width/2) - (getLeftToRightDistance(treeHead) * spaceMultipler / 2);
+    let offsetX = (canvas.width/2) - (leftToRight * spaceMultipler / 2);
 
     // Draw the tree
-    drawLittle(treeHead, 0, 20, 100, 50, offsetX);
+    drawLittle(treeHead, 0, 20, brotherWidth, brotherHeight, offsetX);
 }
 
 // Recursively draw littles all the way down the tree
@@ -191,7 +200,7 @@ function drawLittle(brother, x, y, width, height, offsetX){
 }
 
 $("#export").click(function() {
-    var img    = canvas.toDataURL("image/png");
+    var img = canvas.toDataURL("image/png");
     var a = $("<a>").attr("href", img).attr("download", "family_tree").appendTo("body");
     a[0].click();
     a.remove();

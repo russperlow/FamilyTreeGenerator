@@ -212,3 +212,16 @@ function getRightMostDistance(brother){
     }
     return highestX;
 }
+
+function getTreeDepth(brother, depth){
+
+    for(var i = 0; i < brother.GetLittles().length; i++){
+        depth = getTreeDepth(brother.GetLittles()[i], depth);
+    }
+
+    if(brother.Y > depth){
+        return brother.Y + 1;
+    }
+
+    return depth;
+}
