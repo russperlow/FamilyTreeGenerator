@@ -57,7 +57,8 @@ function filePicked(oEvent) {
                 treeHeads = [];
                 createBrothers(oJS);
                 getBigBrothers();
-                makeTrees();
+                makeTreeButtons();
+                // makeTrees();
             }
         });
     };
@@ -138,19 +139,30 @@ function getBigBrothers(){
     }
 }
 
-function makeTrees(){
+// Makes a button for every tree
+function makeTreeButtons(){
     for(let i = 0; i < treeHeads.length; i++){
-        let treeHead = treeHeads[i];
-
-        if(treeHead.Name == "Tyler Pixley"){
-            setTreeYValues(treeHead, 0);
-            setTreeXValues(treeHead);
-            checkAllChildrenOnScreen(treeHead);
-            calculateFinalPositions(treeHead, 0);
-            let offsetX = (canvas.width / 2);
-            drawLittle(treeHead, 0, 20, 100, 50, 200);
-        }
+        var button = document.createElement("button");
+        button.value = i;
+        button.innerHTML = treeHeads[i].Name;
+        button.onclick = function(event){
+            makeTrees(event.currentTarget.value);
+        };
+        var foo = document.getElementById("tree_btns");
+        foo.appendChild(button);
     }
+}
+
+function makeTrees(treeToMake){
+    var treeHead = treeHeads[treeToMake];
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setTreeYValues(treeHead, 0);
+    setTreeXValues(treeHead);
+    checkAllChildrenOnScreen(treeHead);
+    calculateFinalPositions(treeHead, 0);
+    let offsetX = (canvas.width / 2);
+    drawLittle(treeHead, 0, 20, 100, 50, 200);
 }
 let NODESIZE = 1;
 let SIBLINGDISTANCE = 0;
