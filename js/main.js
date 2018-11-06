@@ -345,17 +345,27 @@ function drawLittle(brother, x, y, width, height, offsetX){
     ctx.font = '12px Arial';
     ctx.fillText(brother.Name, brother.X * offsetX, y + (height / 2));
 
-    // Draw the 2 lines connecting this brother to his big
-    var bigY = y - (height * 1.5) + (height / 2);
-    var bigX = brother.Big.X * offsetX;
-    var centerX = brother.X * offsetX + (width / 2);
-    ctx.strokeStyle = 'black';
-    ctx.beginPath();
-    ctx.moveTo(centerX, y);
-    ctx.lineTo(centerX, bigY);
-    ctx.lineTo(bigX, bigY);
-    ctx.stroke();
+    // Draw the 2 lines connecting this brother to his big, except for tree head
+    if(brother.Big != null){
+        var bigY = y - (height * 1.5) + (height / 2);
+        var bigX = brother.Big.X * offsetX;
+        var centerX = brother.X * offsetX + (width / 2);
+        ctx.strokeStyle = 'black';
+        ctx.beginPath();
+        ctx.moveTo(centerX, y);
+        ctx.lineTo(centerX, bigY);
+        ctx.lineTo(bigX, bigY);
+        ctx.stroke();
+    }
 }
+
+$("#export").click(function() {
+    var img    = canvas.toDataURL("image/png");
+    var a = $("<a>").attr("href", img).attr("download", "family_tree").appendTo("body");
+    a[0].click();
+    a.remove();
+    
+});
 
 class Dictionary{
     constructor(){
