@@ -179,3 +179,37 @@ function calculateFinalPositions(brother, modSum){
         calculateFinalPositions(brother.GetLittles()[i], modSum);
     }
 }
+
+let lowestX = Number.MAX_SAFE_INTEGER;
+let highestX = Number.MIN_SAFE_INTEGER;
+
+function getLeftToRightDistance(treeHead){
+    lowestX = Number.MAX_SAFE_INTEGER;
+    highestX = Number.MIN_SAFE_INTEGER;
+    var leftDistance = getLeftMostDistance(treeHead);
+    var rightDistance = getRightMostDistance(treeHead);
+    console.log(rightDistance - leftDistance);
+    return rightDistance - leftDistance;
+}
+
+function getLeftMostDistance(brother){
+    if(brother.X < lowestX){
+        lowestX = brother.X;
+    }
+
+    for(var i = 0; i < brother.GetLittles().length; i++){
+        getLeftMostDistance(brother.GetLittles()[i]);
+    }
+    return lowestX;
+}
+
+function getRightMostDistance(brother){
+    if(brother.X > highestX){
+        highestX = brother.X;
+    }
+
+    for(var i = 0; i < brother.GetLittles().length; i++){
+        getRightMostDistance(brother.GetLittles()[i]);
+    }
+    return highestX;
+}

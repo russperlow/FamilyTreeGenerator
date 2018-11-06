@@ -47,10 +47,7 @@ function filePicked(oEvent) {
             // Obtain The Current Row As CSV
             let sCSV = XLS.utils.make_csv(cfb.Sheets[sheetName]);   
             let oJS = XLS.utils.sheet_to_json(cfb.Sheets[sheetName]);   
-    
-            // $("#my_file_output").html(sCSV);
-            //console.log(oJS)
-
+  
             // Whenever a new sheet is uploaded, reset and create brothers
             if(sheetName == XLXS_MAIN_SHEET_NAME){
                 brothers = [];
@@ -58,7 +55,6 @@ function filePicked(oEvent) {
                 createBrothers(oJS);
                 getBigBrothers();
                 makeTreeButtons();
-                // makeTrees();
             }
         });
     };
@@ -125,9 +121,11 @@ function makeTrees(treeToMake){
     setTreeXValues(treeHead);
     checkAllChildrenOnScreen(treeHead);
     calculateFinalPositions(treeHead, 0);
-    let offsetX = (canvas.width / 2);
-    drawLittle(treeHead, 0, 20, 100, 50, 200);
+    let offsetX = (canvas.width/2) - (getLeftToRightDistance(treeHead) * spaceMultipler / 2);
+    drawLittle(treeHead, 0, 20, 100, 50, offsetX);
 }
+
+let spaceMultipler = 110;
 
 // Recursively draw littles all the way down the tree
 function drawLittle(brother, x, y, width, height, offsetX){
@@ -137,27 +135,28 @@ function drawLittle(brother, x, y, width, height, offsetX){
         drawLittle(littleBrothers[i], brother.X, y + (height * 1.5), width, height, offsetX);
     }
 
+    console.log(brother.Name + " X: " + brother.X + " Y: " + brother.Y);
+
     // Draw this brothers rectangle
     ctx.strokeStyle = 'black';
-    ctx.strokeRect(brother.X * offsetX, y, width, height);
+    ctx.strokeRect(brother.X * spaceMultipler + offsetX, y, width, height);
     ctx.fillStyle = 'white';
-    ctx.fillRect(brother.X * offsetX, y, width, height);
+    ctx.fillRect(brother.X * spaceMultipler + offsetX, y, width, height);
 
     // Draw this brothers name inside their rectangle
     ctx.fillStyle = 'red';
     ctx.font = '12px Arial';
-    ctx.fillText(brother.Name, brother.X * offsetX, y + (height / 2));
+    ctx.fillText(brother.Name, brother.X * spaceMultipler + offsetX, y + (height / 2));
 
     // Draw the 2 lines connecting this brother to his big, except for tree head
     if(brother.Big != null){
-        var bigY = y - (height * 1.5) + (height / 2);
-        var bigX = brother.Big.X * offsetX;
-        var centerX = brother.X * offsetX + (width / 2);
+        var bigY = y - (height * 1.5) + (height);
+        var bigX = brother.Big.X * spaceMultipler + offsetX;
+        var centerX = brother.X * spaceMultipler + offsetX + (width / 2);
         ctx.strokeStyle = 'black';
         ctx.beginPath();
         ctx.moveTo(centerX, y);
-        ctx.lineTo(centerX, bigY);
-        ctx.lineTo(bigX, bigY);
+        ctx.lineTo(bigX + width/2, bigY);
         ctx.stroke();
     }
 }
