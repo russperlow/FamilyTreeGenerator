@@ -335,13 +335,15 @@ function drawLittle(brother, x, y, width, height, offsetX){
     }
 
     // Draw this brothers rectangle
-    ctx.fillStyle = 'green';
+    ctx.strokeStyle = 'black';
+    ctx.strokeRect(brother.X * offsetX, y, width, height);
+    ctx.fillStyle = 'white';
     ctx.fillRect(brother.X * offsetX, y, width, height);
 
     // Draw this brothers name inside their rectangle
     ctx.fillStyle = 'red';
     ctx.font = '12px Arial';
-    ctx.fillText(brother.Name, brother.X * offsetX, y);
+    ctx.fillText(brother.Name, brother.X * offsetX, y + (height / 2));
 
     // Draw the 2 lines connecting this brother to his big
     var bigY = y - (height * 1.5) + (height / 2);
