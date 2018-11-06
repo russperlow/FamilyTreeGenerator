@@ -188,7 +188,6 @@ function getLeftToRightDistance(treeHead){
     highestX = Number.MIN_SAFE_INTEGER;
     var leftDistance = getLeftMostDistance(treeHead);
     var rightDistance = getRightMostDistance(treeHead);
-    console.log(rightDistance - leftDistance);
     return rightDistance - leftDistance;
 }
 

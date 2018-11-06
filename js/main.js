@@ -31,7 +31,7 @@ let XLXS_MAIN_SHEET_NAME = "Brothers"; // THE NAME OF THE MAIN SHEET, WE DO NOT 
 
 // The input file HTML
 $(function() {
-    oFileIn = document.getElementById('my_file_input');
+    oFileIn = document.getElementById('my-file-input');
     if(oFileIn.addEventListener) {
         oFileIn.addEventListener('change', filePicked, false);
     }
@@ -112,10 +112,11 @@ function makeTreeButtons(){
         var button = document.createElement("button");
         button.value = i;
         button.innerHTML = treeHeads[i].Name;
+        button.setAttribute("class", "tree-head-btn");
         button.onclick = function(event){
             makeTrees(event.currentTarget.value);
         };
-        var foo = document.getElementById("tree_btns");
+        var foo = document.getElementById("tree-btns");
         foo.appendChild(button);
     }
 }
