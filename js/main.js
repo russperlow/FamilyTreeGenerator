@@ -144,9 +144,21 @@ function drawLittle(brother, x, y, width, height, offsetX){
     ctx.fillRect(brother.X * spaceMultipler + offsetX, y, width, height);
 
     // Draw this brothers name inside their rectangle
+    var bidNumX = (brother.X * spaceMultipler + offsetX) + (width / 2) - (ctx.measureText(brother.Roll).width / 2);
+    var bidNumY = y + (height/3);
+
+    let firstName = brother.Name.split(" ")[0];
+    var firstNameX = (brother.X * spaceMultipler + offsetX) + (width / 2) - (ctx.measureText(firstName).width / 2);
+    var firstNameY = bidNumY + 12;
+    let lastName = brother.Name.split(" ")[1];
+    var lastNameX = (brother.X * spaceMultipler + offsetX) + (width / 2) - (ctx.measureText(lastName).width / 2);
+    var lastNameY = firstNameY + 12;
+
     ctx.fillStyle = 'red';
     ctx.font = '12px Arial';
-    ctx.fillText(brother.Name, brother.X * spaceMultipler + offsetX, y + (height / 2));
+    ctx.fillText(brother.Roll, bidNumX, bidNumY);
+    ctx.fillText(firstName, firstNameX, firstNameY);
+    ctx.fillText(lastName, lastNameX, lastNameY);
 
     // Draw the 2 lines connecting this brother to his big, except for tree head
     if(brother.Big != null){
