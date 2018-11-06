@@ -1,8 +1,15 @@
 let oFileIn; // The uploaded file
 let brothers = []; // List of brothers
 let treeHeads = []; // List of all tree heads (brothers without bigs)
+let spaceMultipler = 110; // Distance nodes should be when drawn
+let fontSize = 12; // Font size for roll numbers and names when drawn
+let canvas, ctx; // Canvas & context variable for drawing
 
-let canvas, ctx;
+// Colors for drawing the tree
+let rectOutline = 'black';
+let rectFill = 'white';
+let lineColor = 'black';
+let textColor = 'blue';
 
 window.onload = function(){
     canvas = document.querySelector("canvas");
@@ -85,9 +92,9 @@ function getBigBrothers(){
 
         if(bbRoll != XLXS_NO_BB){
             let littleBrother = brothers[i];
-            let bigBrother = brothers[parseInt(littleBrother.BBRoll)]; // Add one to compensate for 0 index
+            let bigBrother = brothers[parseInt(littleBrother.BBRoll)];
 
-            // Tyler Monica case
+            // Tyler Monica case (For some reason he has no big in the roll)
             if(bigBrother == undefined)
                 continue;
 
@@ -113,19 +120,25 @@ function makeTreeButtons(){
     }
 }
 
+// Given a number make the respective tree from treeTeads
 function makeTrees(treeToMake){
     var treeHead = treeHeads[treeToMake];
 
+    // Be sure to clear the screen as to not draw ontop of already selected trees
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Do the math to create the tree
     setTreeYValues(treeHead, 0);
     setTreeXValues(treeHead);
     checkAllChildrenOnScreen(treeHead);
     calculateFinalPositions(treeHead, 0);
+
+    // The offset is to try and center the tree in canvas
     let offsetX = (canvas.width/2) - (getLeftToRightDistance(treeHead) * spaceMultipler / 2);
+
+    // Draw the tree
     drawLittle(treeHead, 0, 20, 100, 50, offsetX);
 }
-
-let spaceMultipler = 110;
 
 // Recursively draw littles all the way down the tree
 function drawLittle(brother, x, y, width, height, offsetX){
@@ -135,37 +148,40 @@ function drawLittle(brother, x, y, width, height, offsetX){
         drawLittle(littleBrothers[i], brother.X, y + (height * 1.5), width, height, offsetX);
     }
 
-    console.log(brother.Name + " X: " + brother.X + " Y: " + brother.Y);
-
     // Draw this brothers rectangle
-    ctx.strokeStyle = 'black';
+    ctx.strokeStyle = rectOutline;
     ctx.strokeRect(brother.X * spaceMultipler + offsetX, y, width, height);
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = rectFill;
     ctx.fillRect(brother.X * spaceMultipler + offsetX, y, width, height);
 
-    // Draw this brothers name inside their rectangle
-    var bidNumX = (brother.X * spaceMultipler + offsetX) + (width / 2) - (ctx.measureText(brother.Roll).width / 2);
-    var bidNumY = y + (height/3);
+    // X,Y location for writing bid number
+    var rollNumX = (brother.X * spaceMultipler + offsetX) + (width / 2) - (ctx.measureText(brother.Roll).width / 2);
+    var rollNumY = y + (height/3);
 
+    // X, Y location for writing first name
     let firstName = brother.Name.split(" ")[0];
     var firstNameX = (brother.X * spaceMultipler + offsetX) + (width / 2) - (ctx.measureText(firstName).width / 2);
-    var firstNameY = bidNumY + 12;
+    var firstNameY = rollNumY + 12; // 12 IS THE FONT SIZE
+
+    // X, Y location for writing last name
     let lastName = brother.Name.split(" ")[1];
     var lastNameX = (brother.X * spaceMultipler + offsetX) + (width / 2) - (ctx.measureText(lastName).width / 2);
     var lastNameY = firstNameY + 12;
 
-    ctx.fillStyle = 'red';
-    ctx.font = '12px Arial';
-    ctx.fillText(brother.Roll, bidNumX, bidNumY);
+    // Write out their roll number and names
+    ctx.fillStyle = textColor;
+    ctx.font = fontSize + 'px Arial';
+    ctx.fillText(brother.Roll, rollNumX, rollNumY);
     ctx.fillText(firstName, firstNameX, firstNameY);
     ctx.fillText(lastName, lastNameX, lastNameY);
 
-    // Draw the 2 lines connecting this brother to his big, except for tree head
+    // Draw 1 diagonal line connecting this brother to his big, except for tree head
+    // We do NOT draw 1 x-line and 1 y-line because it will occasionally conflict with existing nodes
     if(brother.Big != null){
         var bigY = y - (height * 1.5) + (height);
         var bigX = brother.Big.X * spaceMultipler + offsetX;
         var centerX = brother.X * spaceMultipler + offsetX + (width / 2);
-        ctx.strokeStyle = 'black';
+        ctx.strokeStyle = lineColor;
         ctx.beginPath();
         ctx.moveTo(centerX, y);
         ctx.lineTo(bigX + width/2, bigY);
