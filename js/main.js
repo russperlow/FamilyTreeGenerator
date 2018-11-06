@@ -7,6 +7,7 @@ let canvas, ctx;
 window.onload = function(){
     canvas = document.querySelector("canvas");
     canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
     ctx = canvas.getContext('2d');
 }
 
@@ -75,10 +76,42 @@ function createBrothers(objects){
             continue;
 
         let brother = {};
+        
+        // SS info
         brother.Name = object[XLXS_MEMBER];
         brother.Roll = object[XLXS_ROLL];
         brother.BBRoll = object[XLXS_BB_ROLL];
+
+        // Big, littles, twins info
         brother.LittleBrothers = [];
+        brother.PreviousLittle = null;
+        brother.NextLittle = null;
+        brother.Big = null;
+        
+        // Tree position info
+        brother.X = -1;
+        brother.Y = 0;
+        brother.Mod = 0;
+
+        // When adding a little to this brother
+        brother.AddLittle = function(brother){
+
+            // Set the littles big as this
+            brother.Big = this;
+
+            // Set the little to a lower depth than the big
+            //brother.Y = this.Y++;
+
+            // If littles already exist, connect them
+            if(this.LittleBrothers.length > 0){
+                this.LittleBrothers[0].PreviousLittle = brother;
+                brother.NextLittle = this.LittleBrothers[0];
+            }
+
+            // Put the little to the front of the array since we are working backwards
+            this.LittleBrothers.unshift(brother);
+
+        }
         brothers.push(brother);
     }
     // console.log(brothers);
@@ -97,7 +130,7 @@ function getBigBrothers(){
             if(bigBrother == undefined)
                 continue;
 
-            bigBrother.LittleBrothers.push(brothers[i]);
+            bigBrother.AddLittle(brothers[i]);
         }
         else{
             treeHeads.push(brothers[i]);
@@ -110,27 +143,267 @@ function makeTrees(){
     for(let i = 0; i < treeHeads.length; i++){
         let treeHead = treeHeads[i];
 
-        if(treeHead.Name == "Clayton Smith"){
-            drawLittle(treeHead, 10, 10, 100, 50);
+        if(treeHead.Name == "Tyler Pixley"){
+            setTreeYValues(treeHead, 0);
+            setTreeXValues(treeHead);
+            checkAllChildrenOnScreen(treeHead);
+            calculateFinalPositions(treeHead, 0);
+            printNodes(treeHead);
+            let offsetX = (canvas.width / 2);
+            drawLittle(treeHead, 0, 20, 100, 50, 200);
         }
     }
 }
+let NODESIZE = 1;
+let SIBLINGDISTANCE = 0;
+
+// Sets the inital x value for each brother
+function setTreeXValues(brother){
+    let littleBrothers = brother.LittleBrothers;
+    for(let i = 0; i < littleBrothers.length; i++){
+        setTreeXValues(littleBrothers[i]);
+    }
+
+    if(littleBrothers.length == 0){ // If no littles
+        if(brother.PreviousLittle != null){ // If big had a previous little
+            brother.X = brother.PreviousLittle.X + NODESIZE + SIBLINGDISTANCE
+        }
+        else{
+            brother.X = 0;
+        }
+    }
+    else if(littleBrothers.length == 1){ // If only 1 little
+        if(brother.PreviousLittle == null){ // If big has had no previous littles
+            brother.X = littleBrothers[0].X;
+        }
+        else{
+            brother.X = brother.PreviousLittle.X + NODESIZE + SIBLINGDISTANCE;
+            brother.Mod = brother.X - littleBrothers[0].X;
+        }
+    }
+    else{
+        let leftChild = littleBrothers[0];
+        let rightChild = littleBrothers[littleBrothers.length - 1];
+        let mid = (leftChild.X + rightChild.X) / 2;
+
+        if(brother.PreviousLittle == null){
+            brother.X = mid;
+        }
+        else{
+            brother.X = brother.PreviousLittle.X + NODESIZE + SIBLINGDISTANCE;
+            brother.Mod = brother.X - mid;
+        }
+    }
+
+    // CHECK FOR CONFLICT
+    if(brother.LittleBrothers.length > 0 && brother.PreviousLittle != null){
+        checkForConflicts(brother);
+    }
+}
+
+function setTreeYValues(brother, yValue){
+    brother.Y = yValue;
+    for(var i = 0; i < brother.LittleBrothers.length; i++){
+        setTreeYValues(brother.LittleBrothers[i], yValue+1);
+    }
+}
+
+function checkForConflicts(brother){
+    let minDistance = 0 + NODESIZE;
+    let shiftValue = 0;
+
+    var nodeContour = new Dictionary();
+    nodeContour = getLeftContour(brother, 0, nodeContour);
+
+    var sibling = brother.Big.LittleBrothers[0];
+    while(sibling != null && sibling != brother){
+        var siblingContour = new Dictionary();
+        siblingContour = getRightContour(sibling, 0, siblingContour);
+
+        var sibKey = siblingContour.KeysMax();
+        var nodeKey = nodeContour.KeysMax();
+        var min = Math.min(siblingContour.KeysMax(), nodeContour.KeysMax());
+        for(let level = brother.Y + 1; level <= Math.min(siblingContour.KeysMax(), nodeContour.KeysMax()); level++){
+            var distance = nodeContour.Get(level) - siblingContour.Get(level);
+            if(distance + shiftValue < minDistance){
+                shiftValue = minDistance - distance;
+            }
+        }
+
+        if(shiftValue > 0){
+            brother.X += shiftValue;
+            brother.Mod += shiftValue;
+
+            CenterNodesBetween(brother, sibling);
+
+            shiftValue = 0;
+        }
+
+        sibling = sibling.NextLittle;
+    }
+}
+
+function getLeftContour(brother, modSum, values){
+    if(!values.ContainsKey(brother.Y)){
+        values.Add(brother.Y, brother.X + modSum);
+    }
+    else{
+        values.Add(brother.Y, Math.min(values.Get(brother.Y), brother.X + modSum));
+    }
+
+    modSum += brother.Mod;
+    for(let i = 0; i < brother.LittleBrothers.length; i++){
+        values = getLeftContour(brother.LittleBrothers[i], modSum, values);
+    }
+    return values;
+}
+
+function getRightContour(brother, modSum, values){
+    if(!values.ContainsKey(brother.Y)){
+        values.Add(brother.Y, brother.X + modSum);
+    }
+    else{
+        values.Add(brother.Y, Math.max(values.Get(brother.Y), brother.X + modSum));
+    }
+
+    modSum += brother.Mod;
+    for(let i = 0; i < brother.LittleBrothers.length; i++){
+        values = getRightContour(brother.LittleBrothers[i], modSum, values);
+    }
+    return values;
+}
+
+function CenterNodesBetween(leftNode, rightNode){
+
+    var leftIndex = leftNode.Big.LittleBrothers.indexOf(rightNode);
+    var rightIndex = leftNode.Big.LittleBrothers.indexOf(leftNode);
+
+    var numNodesBetween = (rightIndex - leftIndex) - 1;
+
+    if(numNodesBetween > 0){
+        var distanceBetweenNodes = (leftNode.X - rightNode.X) / (numNodesBetween + 1);
+
+        var count = 1;
+        for(var i = leftIndex + 1; i < rightIndex; i++){
+            var middleNode = leftNode.Big.LittleBrothers[i];
+            
+            var desiredX = rightNode.X + (distanceBetweenNodes * count);
+            var offset = desiredX - middleNode.X;
+            middleNode.X += offset;
+            middleNode.Mod += offset;
+
+            count++;
+        }
+
+        checkForConflicts(leftNode);
+    }
+}
+
+function checkAllChildrenOnScreen(brother){
+    var nodeContour = new Dictionary();
+    nodeContour = getLeftContour(brother, 0, nodeContour);
+
+    var shiftAmount = 0;
+    for(var key in nodeContour.GetKeys()){
+        if(nodeContour.Get(key) + shiftAmount < 0){
+            shiftAmount = (nodeContour.Get(key) * -1);
+        }
+    }
+
+    if(shiftAmount > 0){
+        brother.X += shiftAmount;
+        brother.Mod += shiftAmount;
+    }
+}
+
+
+function calculateFinalPositions(brother, modSum){
+
+    if(brother.Name == "Pat Furrey"){
+        debugger;
+    }
+
+    brother.X += modSum;
+    modSum += brother.Mod;
+
+    for(var i = 0; i < brother.LittleBrothers.length; i++){
+        calculateFinalPositions(brother.LittleBrothers[i], modSum);
+    }
+}
+
+function printNodes(brother){
+    for(var i = 0; i < brother.LittleBrothers.length; i++){
+        printNodes(brother.LittleBrothers[i]);
+    }
+    console.log("Name: " + brother.Name + " X: " + brother.X + " Y: " + brother.Y + " Mod: " + brother.Mod);
+}
 
 // Recursively draw littles all the way down the tree
-function drawLittle(brother, x, y, width, height){
+function drawLittle(brother, x, y, width, height, offsetX){
 
     let littleBrothers = brother.LittleBrothers;
     for(let i = 0; i < littleBrothers.length; i++){
-        drawLittle(littleBrothers[i], x + (width * 1.5 * i), y + (height * 1.5), width, height);
+        drawLittle(littleBrothers[i], brother.X, y + (height * 1.5), width, height, offsetX);
     }
 
-    console.log(brother.Name);
+    // console.log("Name: " + brother.Name + " X: " + brother.X);
     ctx.fillStyle = 'green';
-    ctx.fillRect(x, y, width, height);
+    ctx.fillRect(brother.X * offsetX, y, width, height);
     ctx.fillStyle = 'red';
-    ctx.font = '15px Arial';
-    ctx.fillText(brother.Name, x, y);
+    ctx.font = '12px Arial';
+    ctx.fillText(brother.Name, brother.X * offsetX, y);
+}
 
-    // ctx.fillStyle = 'green';
-    // ctx.fillRect(x, y, width, height);
+class Dictionary{
+    constructor(){
+        this.kvp = {};
+    }
+
+    Add(key, value){
+        this.kvp[key] = value;
+    }
+
+    Remove(key){
+        delete this.kvp[key];
+    }
+
+    Get(key){
+        return this.kvp[key];
+    }
+
+    KeysMax(){
+        var max = -1;
+        for(var key in this.kvp){
+            if(key > max){
+                max = key;
+            }
+        }
+        return max;
+    }
+
+    Contains(value){
+        for(var key in this.kvp){
+            if(this.kvp[key] == value){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    ContainsKey(_key){
+        for(var key in this.kvp){
+            if(key == _key){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    GetKeys(){
+        return this.kvp;
+    }
+
+    Count(){
+        return this.kvp.length;
+    }
 }
