@@ -28,4 +28,12 @@ class Brother{
       // Put the little to the front of the array since we are working backwards
       this.LittleBrothers.unshift(brother);
     }
+
+    GetLittles(){
+        return this.LittleBrothers;
+    }
+
+    IsLeftMost(){
+        return this.PreviousLittle == null;
+    }
 }

@@ -80,7 +80,6 @@ function createBrothers(objects){
 
         brothers.push(brother);
     }
-    // console.log(brothers);
 }
 
 // Loop backwards to get everyones big brother, assign them as their big's little
@@ -133,7 +132,7 @@ function makeTrees(treeToMake){
 // Recursively draw littles all the way down the tree
 function drawLittle(brother, x, y, width, height, offsetX){
 
-    let littleBrothers = brother.LittleBrothers;
+    let littleBrothers = brother.GetLittles();
     for(let i = 0; i < littleBrothers.length; i++){
         drawLittle(littleBrothers[i], brother.X, y + (height * 1.5), width, height, offsetX);
     }

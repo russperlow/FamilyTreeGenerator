@@ -1,26 +1,27 @@
 let NODESIZE = 1;
 let SIBLINGDISTANCE = 0;
 
-// Sets the inital x value for each brother
+// Sets the 'local X value'
+// This is the X value within that set of littles alone
 function setTreeXValues(brother){
-    let littleBrothers = brother.LittleBrothers;
+    let littleBrothers = brother.GetLittles();
     for(let i = 0; i < littleBrothers.length; i++){
         setTreeXValues(littleBrothers[i]);
     }
 
-    if(littleBrothers.length == 0){ // If no littles
-        if(brother.PreviousLittle != null){ // If big had a previous little
+    if(littleBrothers.length == 0){ // If this brother has no littles
+        if(!brother.IsLeftMost()){ // If big had a previous little
             brother.X = brother.PreviousLittle.X + NODESIZE + SIBLINGDISTANCE
         }
-        else{
+        else{ // If this is the bigs first little we start from 0
             brother.X = 0;
         }
     }
-    else if(littleBrothers.length == 1){ // If only 1 little
-        if(brother.PreviousLittle == null){ // If big has had no previous littles
+    else if(littleBrothers.length == 1){ // If this brother has only 1 little
+        if(brother.IsLeftMost()){ // If big has had no previous littles
             brother.X = littleBrothers[0].X;
         }
-        else{
+        else{ // If this is the bigs 
             brother.X = brother.PreviousLittle.X + NODESIZE + SIBLINGDISTANCE;
             brother.Mod = brother.X - littleBrothers[0].X;
         }
@@ -30,7 +31,7 @@ function setTreeXValues(brother){
         let rightChild = littleBrothers[littleBrothers.length - 1];
         let mid = (leftChild.X + rightChild.X) / 2;
 
-        if(brother.PreviousLittle == null){
+        if(brother.IsLeftMost()){
             brother.X = mid;
         }
         else{
@@ -40,18 +41,20 @@ function setTreeXValues(brother){
     }
 
     // CHECK FOR CONFLICT
-    if(brother.LittleBrothers.length > 0 && brother.PreviousLittle != null){
+    if(brother.GetLittles().length > 0 && brother.PreviousLittle != null){
         checkForConflicts(brother);
     }
 }
 
+// Loop through all brothers and set their Y value equal to 1 more than their bigs
 function setTreeYValues(brother, yValue){
     brother.Y = yValue;
-    for(var i = 0; i < brother.LittleBrothers.length; i++){
-        setTreeYValues(brother.LittleBrothers[i], yValue+1);
+    for(var i = 0; i < brother.GetLittles().length; i++){
+        setTreeYValues(brother.GetLittles()[i], yValue+1);
     }
 }
 
+// Checks to make sure their are no overlapping conflicts
 function checkForConflicts(brother){
     let minDistance = 0 + NODESIZE;
     let shiftValue = 0;
@@ -87,6 +90,8 @@ function checkForConflicts(brother){
     }
 }
 
+// Check to make sure no nodes conflict on the same Y level with the inital given node
+// Loop through all children, record the max X at each Y to know what must shift and by how much
 function getLeftContour(brother, modSum, values){
     if(!values.ContainsKey(brother.Y)){
         values.Add(brother.Y, brother.X + modSum);
@@ -96,12 +101,14 @@ function getLeftContour(brother, modSum, values){
     }
 
     modSum += brother.Mod;
-    for(let i = 0; i < brother.LittleBrothers.length; i++){
-        values = getLeftContour(brother.LittleBrothers[i], modSum, values);
+    for(let i = 0; i < brother.GetLittles().length; i++){
+        values = getLeftContour(brother.GetLittles()[i], modSum, values);
     }
     return values;
 }
 
+// Check to make sure no nodes have a negative mod value
+// Find the smallest X value & if it is negative shift the Root Node over by that amount
 function getRightContour(brother, modSum, values){
     if(!values.ContainsKey(brother.Y)){
         values.Add(brother.Y, brother.X + modSum);
@@ -111,12 +118,13 @@ function getRightContour(brother, modSum, values){
     }
 
     modSum += brother.Mod;
-    for(let i = 0; i < brother.LittleBrothers.length; i++){
-        values = getRightContour(brother.LittleBrothers[i], modSum, values);
+    for(let i = 0; i < brother.GetLittles().length; i++){
+        values = getRightContour(brother.GetLittles()[i], modSum, values);
     }
     return values;
 }
 
+// Center the two given nodes by their big
 function CenterNodesBetween(leftNode, rightNode){
 
     var leftIndex = leftNode.Big.LittleBrothers.indexOf(rightNode);
@@ -143,7 +151,7 @@ function CenterNodesBetween(leftNode, rightNode){
     }
 }
 
-// Checks all of the children from the root node
+// Checks all of the children from the root node down for overlapping conflicts
 function checkAllChildrenOnScreen(brother){
     var nodeContour = new Dictionary();
     nodeContour = getLeftContour(brother, 0, nodeContour);
@@ -167,7 +175,7 @@ function calculateFinalPositions(brother, modSum){
     brother.X += modSum;
     modSum += brother.Mod;
 
-    for(var i = 0; i < brother.LittleBrothers.length; i++){
-        calculateFinalPositions(brother.LittleBrothers[i], modSum);
+    for(var i = 0; i < brother.GetLittles().length; i++){
+        calculateFinalPositions(brother.GetLittles()[i], modSum);
     }
 }
