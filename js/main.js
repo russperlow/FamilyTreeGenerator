@@ -7,9 +7,34 @@ let canvas, ctx; // Canvas & context variable for drawing
 
 // Colors for drawing the tree
 let rectOutline = 'black';
-let rectFill = 'white';
+let ACTIVE_COLOR = 'white'; // Fill color for actives
+let ALUMNI_COLOR = 'white'; // Fill color for alumni
+let TRANSFERRED_COLOR = 'white'; // Fill color for those who left/transferred
+let DISASSOCIATED_COLOR = 'white'; // Fill color for those who disassociated
 let lineColor = 'black';
 let textColor = 'blue';
+
+// CONSTANTS, SHOULD READ AS COLUMN TITLES AS THEY APPEAR IN THE EXCEL SHEET
+let XLXS_BB_ROLL = "BB Roll"; // NAME OF COLUMN WHERE BIG BROTHER ROLL # IS 
+let XLXS_BIG_BROTHER = "Big Brother"; // NAME OF COLUMN WHERE BIG BROTHER'S NAME IS
+let XLXS_ROLL = "Roll #"; // NAME OF COLUMN WHERE THIS BROTHERS ROLL # IS
+let XLXS_MEMBER = "Member"; // NAME OF COLUMN WHERE THIS BROTHER'S NAME IS
+let XLXS_STATUS = "Status"; // NAME OF THE COLUMN FOR THE PERSON'S STATUS (ie. Active, Alumni, Sweetheart, etc.)
+let XLXS_STATUS_SWEETHEART = "Sweetheart"; // WHAT SHOWS IN THE STATUS COLUMN FOR SWEETHEARTS
+let XLXS_STATUS_PET = "Chapter Dog"; // WHAT SHOWS IN THE STATUS COLUMN FOR CHAPTER PETS (DOGS)
+let XLXS_STATUS_DISASSOCIATED = "Disassociated"; // WHAT SHOWS IN THE STATUS COLUMN FOR PEOPLE WHO LEFT/WERE FORM 51'd
+let XLXS_STATUS_ACTIVE = "Active"; // WHAT SHOWS IN THE STATUS COLUMN FOR CURRENT ACTIVE BROTHERS AT RIT
+let XLXS_STATUS_ALUMNI = "Alumni"; // WHAT SHOWS IN THE STATUS COLUMN FOR ALUMNI
+let XLXS_STATUS_TRANSFERRED = "Transferred/ Left School"; // WHAT SHOWS IN THE STATUS COLUMN FOR THOSE WHO LEFT RIT
+let XLXS_NO_BB = "N/A"; // IN PLACE FOR BROTHERS WHO DO NOT HAVE BIG BROTHERS (Drew Taylor - Kevin Petrella)
+let XLXS_MAIN_SHEET_NAME = "Brothers"; // THE NAME OF THE MAIN SHEET, WE DO NOT WANT TO GRAB INFO FROM ANY ADDITIONAL SHEETS
+
+// Dictionary for storing statuses to colors
+let colorDict = new Dictionary();
+colorDict.Add(XLXS_STATUS_ACTIVE, ACTIVE_COLOR);
+colorDict.Add(XLXS_STATUS_ALUMNI, ALUMNI_COLOR);
+colorDict.Add(XLXS_STATUS_TRANSFERRED, TRANSFERRED_COLOR);
+colorDict.Add(XLXS_STATUS_DISASSOCIATED, DISASSOCIATED_COLOR);
 
 // Width and height for the tree nodes we will draw
 let brotherWidth = 100;
@@ -21,17 +46,6 @@ window.onload = function(){
     canvas.width = window.innerWidth;
     ctx = canvas.getContext('2d');
 }
-
-// CONSTANTS, SHOULD READ AS COLUMN TITLES AS THEY APPEAR IN THE EXCEL SHEET
-let XLXS_BB_ROLL = "BB Roll"; // NAME OF COLUMN WHERE BIG BROTHER ROLL # IS 
-let XLXS_BIG_BROTHER = "Big Brother"; // NAME OF COLUMN WHERE BIG BROTHER'S NAME IS
-let XLXS_ROLL = "Roll #"; // NAME OF COLUMN WHERE THIS BROTHERS ROLL # IS
-let XLXS_MEMBER = "Member"; // NAME OF COLUMN WHERE THIS BROTHER'S NAME IS
-let XLXS_STATUS = "Status"; // NAME OF THE COLUMN FOR THE PERSON'S STATUS (ie. Active, Alumni, Sweetheart, etc.)
-let XLXS_STATUS_SWEETHEART = "Sweetheart"; // WHAT SHOWS IN THE STATUS COLUMN FOR SWEETHEARTS
-let XLXS_STATUS_PET = "Chapter Dog"; // WHAT SHOWS IN THE STATUS COLUMN FOR CHAPTER PETS (DOGS)
-let XLXS_NO_BB = "N/A"; // IN PLACE FOR BROTHERS WHO DO NOT HAVE BIG BROTHERS (Drew Taylor - Kevin Petrella)
-let XLXS_MAIN_SHEET_NAME = "Brothers"; // THE NAME OF THE MAIN SHEET, WE DO NOT WANT TO GRAB INFO FROM ANY ADDITIONAL SHEETS
 
 // The input file HTML
 $(function() {
@@ -83,7 +97,7 @@ function createBrothers(objects){
         if(object[XLXS_STATUS] == XLXS_STATUS_SWEETHEART || object[XLXS_STATUS] == XLXS_STATUS_PET)
             continue;
 
-        let brother = new Brother(object[XLXS_MEMBER], object[XLXS_ROLL], object[XLXS_BB_ROLL]);
+        let brother = new Brother(object[XLXS_MEMBER], object[XLXS_ROLL], object[XLXS_BB_ROLL], object[XLXS_STATUS]);
 
         brothers.push(brother);
     }
@@ -161,7 +175,7 @@ function drawLittle(brother, x, y, width, height, offsetX){
     // Draw this brothers rectangle
     ctx.strokeStyle = rectOutline;
     ctx.strokeRect(brother.X * spaceMultipler + offsetX, y, width, height);
-    ctx.fillStyle = rectFill;
+    ctx.fillStyle = colorDict.Get(brother.Status);
     ctx.fillRect(brother.X * spaceMultipler + offsetX, y, width, height);
 
     // X,Y location for writing bid number

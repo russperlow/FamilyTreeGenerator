@@ -1,8 +1,9 @@
 class Brother{
-    constructor(name, roll, bbRoll){
+    constructor(name, roll, bbRoll, status){
         this.Name = name;
         this.Roll = roll;
         this.BBRoll = bbRoll;
+        this.Status = status;
         this.LittleBrothers = [];
         this.PreviousLittle = null;
         this.NextLittle = null;
