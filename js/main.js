@@ -55,6 +55,12 @@ $(function() {
     }
 });
 
+// Selectors to change the color of brothers statuses
+$('#disassociated-select').change(function(){colorDict.Add(XLXS_STATUS_DISASSOCIATED, $(this).children("option:selected").val());});
+$('#transferred-left-select').change(function(){colorDict.Add(XLXS_STATUS_TRANSFERRED, $(this).children("option:selected").val());});
+$('#actives-select').change(function(){colorDict.Add(XLXS_STATUS_ACTIVE, $(this).children("option:selected").val());});
+$('#alumni-select').change(function(){colorDict.Add(XLXS_STATUS_ALUMNI, $(this).children("option:selected").val());});
+
 // When a file is picked, read it from xlxs, parse to JSON and create brother objects
 function filePicked(oEvent) {
     // Get The File From The Input

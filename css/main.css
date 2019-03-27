@@ -3,6 +3,10 @@ h1{
     font-weight: bold;
     color: rgba(0, 0, 255, .9);
 }
+canvas{
+    align-content: center;
+    margin: auto;
+}
 .tree-head-btn, #export{
     background-color: rgba(207, 181, 59, .8);
     color: rgba(0, 0, 255, .9);
@@ -26,5 +30,10 @@ h1{
 #input-file-div{
     margin-left: 43%;
     align-content: center;
+    margin-bottom: 1%;
+}
+#color-selection{
+    display: flex;
+    justify-content: center;
     margin-bottom: 1%;
 }
